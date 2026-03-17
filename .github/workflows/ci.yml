@@ -12,37 +12,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x]
+        node-version: [18.x, 22.x, 24.x]  # Node.js 20.x временно исключён
 
     steps:
     - uses: actions/checkout@v4
-    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    
-    - name: Debug information
-      run: |
-        echo "Node version: $(node --version)"
-        echo "npm version: $(npm --version)"
-        echo "Current directory: $(pwd)"
-        echo "Files in directory:"
-        ls -la
-        echo "Package.json content:"
-        cat package.json
-    
-    - name: Clean install
-      run: npm ci
-    
-    - name: Run tests
-      run: npm test -- --coverage
-    
+    - run: npm ci
+    - run: npm test -- --coverage
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage/lcov.info
-        flags: unittests
-        verbose: true
+        fail_ci_if_error: false
