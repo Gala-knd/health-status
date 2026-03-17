@@ -9,23 +9,41 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    
+    # Используем стратегию с одной версией для начала
     strategy:
       matrix:
-        node-version: [18.x, 22.x, 24.x]  # Node.js 20.x временно исключён
+        node-version: [20.x]  # Начнём с отладки на одной версии
 
     steps:
     - uses: actions/checkout@v4
+    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm test -- --coverage
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/lcov.info
-        fail_ci_if_error: false
+    
+    # Подробная отладочная информация
+    - name: Debug system info
+      run: |
+        echo "=== System Info ==="
+        node --version
+        npm --version
+        pwd
+        ls -la
+        echo "=== Package.json ==="
+        cat package.json
+        echo "=== Disk space ==="
+        df -h
+    
+    # Чистая установка с подробным выводом
+    - name: Clean install with debug
+      run: |
+        rm -rf node_modules package-lock.json
+        npm install --verbose
+        
+    # Запуск тестов с максимальной детализацией
+    - name: Run tests with debug
+      run: |
+        npm test -- --verbose --runInBand --no-cache
